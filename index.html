@@ -390,18 +390,16 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// Trata o retorno do redirect no mobile
-auth.getRedirectResult().then(result => {
-  if(result && result.user){ /* onAuthStateChanged cuida */ }
-}).catch(e => { if(e.code !== 'auth/no-auth-event') toast('Erro ao entrar: ' + e.message); });
-
-function isMobile(){ return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); }
 function signIn(){
-  if(isMobile()){
-    auth.signInWithRedirect(provider).catch(e=>toast('Erro ao entrar: '+e.message));
-  } else {
-    auth.signInWithPopup(provider).catch(e=>toast('Erro ao entrar: '+e.message));
-  }
+  auth.signInWithPopup(provider)
+    .catch(e => {
+      // fallback para redirect se popup for bloqueado
+      if(e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user'){
+        auth.signInWithRedirect(provider);
+      } else {
+        toast('Erro ao entrar: ' + e.message);
+      }
+    });
 }
 function signOut(){
   auth.signOut();
@@ -848,4 +846,3 @@ document.getElementById('new-profile-name').addEventListener('keydown',e=>{if(e.
 </script>
 </body>
 </html>
-
